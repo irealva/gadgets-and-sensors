@@ -63,10 +63,10 @@ void loop() {
   //now we have to map 0-1023 to 0-255 since thats the range analogWrite uses
   int LEDbrightness = map(photocellReading, 0, 1023, 0, 255);
 
-//Recalibrate for my specific room
- LEDbrightness = map(LEDbrightness, 140, 220, 0, 255);
- 
-  Serial.println(LEDbrightness);
+  //Recalibrate for my specific room
+  LEDbrightness = map(LEDbrightness, 140, 220, 0, 255);
+
+  //  Serial.println(LEDbrightness);
 
   if (LEDbrightness < 50) {
     digitalWrite(firstPin, LOW);
