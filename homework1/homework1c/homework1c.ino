@@ -32,13 +32,17 @@ int size_pong = 3;
 int position1 = 2;
 int position2 = 1;
 
+int ball[2] = { 4, 0 } ; // row, column
+int directionX = 1;
+int directionY = 1;
+
 // 2-dimensional array of pixels:
 int pixels[8][8] = {
   {0, 1, 1, 1, 0, 0, 0, 0}, //player2
   {0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 1, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 1, 1, 1, 0, 0, 0} // player1
@@ -58,7 +62,7 @@ void setup() {
     digitalWrite(col[thisPin], HIGH);
   }
 
-  //  t.every(3000, flipLetter);
+  t.every(400, moveBall);
 }
 
 String readString;
@@ -69,7 +73,6 @@ void loop() {
   if (Serial.available())
   {
     String serialData = Serial.readString();
-    Serial.println("Serial command");
     serialData.trim();
 
     if (serialData[0] == 's') {
@@ -84,16 +87,16 @@ void loop() {
     else if (serialData[0] == 'k') {
       moveLeft(2);
     }
-    
+
   }
 
   // Update the timer
-  //  t.update();
+  t.update();
 
-//  if (change) {
-//    getVirtualBoard();
-//    change = 0;
-//  }
+  //  if (change) {
+  //    getVirtualBoard();
+  //    change = 0;
+  //  }
 
   // iterate over the rows (anodes):
   for (int thisRow = 0; thisRow < 8; thisRow++) {
@@ -123,10 +126,65 @@ void loop() {
 
 }
 
-void flipLetter() {
-  letter = !letter;
-  moveRight(1);
+int prevRow = ball[0] - 1;
+int player1[8] = {};
+int player2[8] = {};
+
+void moveBall() {
+  Serial.println("move ball");
+
+  int ballTemp[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+
+  //Clear previous row
+  memcpy(pixels[prevRow], ballTemp, sizeof(ballTemp));
+
+  int row = ball[0];
+  int col = ball[1];
+
+  // ROW DIRECTION
+  if (directionY) { // Going towards player 1
+    row = row + 1;
+    prevRow = row;
+  }
+  else { // Going towards player2
+    row = row - 1;
+    prevRow = row;
+  }
+
+  // If we reach bottom of 8x8 where player 1 is, turn around
+  if (row == 6) {
+    directionY = 0;
+  }
+  // I fwe reach top of 8x8 where player 2 is, turn around
+  if (row == 1) {
+    directionY = 1;
+  }
+
+  // COLUMN DIRECTION
+   if (directionX) {
+    col = col + 1;
+    ballTemp[col] = 1;
+  }
+  else {
+    col = col - 1;
+    ballTemp[col] = 1;
+  }
+  
+  if (col == 7) {
+    directionX = 0; // Go to the left
+  }
+  if (col == 0) {
+    directionX = 1; // Go to the right
+  }
+ 
+  memcpy(pixels[row], ballTemp, sizeof(ballTemp));
+
+  ball[0] = row;
+  ball[1] = col;
+  Serial.println("Row: " + (String) row + " col: " + (String) col + "\n");
 }
+
+
 
 
 void moveRight(int player) {
@@ -139,8 +197,8 @@ void moveRight(int player) {
       for (int i = position1; i < (position1 + size_pong) ; i++) {
         playerTemp[i] = 1;
       }
-
-        memcpy(pixels[7], playerTemp, sizeof(playerTemp));
+      memcpy(player1, playerTemp, sizeof(playerTemp));
+      memcpy(pixels[7], playerTemp, sizeof(playerTemp));
     }
   }
 
@@ -154,10 +212,12 @@ void moveRight(int player) {
         playerTemp[i] = 1;
       }
 
-        memcpy(pixels[0], playerTemp, sizeof(playerTemp));
+      memcpy(player2, playerTemp, sizeof(playerTemp));
+      memcpy(pixels[0], playerTemp, sizeof(playerTemp));
     }
   }
 }
+
 
 void moveLeft(int player) {
   if (player == 1) {
@@ -170,6 +230,7 @@ void moveLeft(int player) {
         playerTemp[i] = 1;
       }
 
+      memcpy(player1, playerTemp, sizeof(playerTemp));
       memcpy(pixels[7], playerTemp, sizeof(playerTemp));
     }
   }
@@ -184,6 +245,7 @@ void moveLeft(int player) {
         playerTemp[i] = 1;
       }
 
+      memcpy(player2, playerTemp, sizeof(playerTemp));
       memcpy(pixels[0], playerTemp, sizeof(playerTemp));
     }
   }
