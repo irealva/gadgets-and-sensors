@@ -10,16 +10,26 @@
    // Instructions: https://www.arduino.cc/en/Tutorial/RowColumnScanning
    // Resources:
    http://playground.arduino.cc/Code/Timer
+   https://github.com/mathertel/OneButton
    ========================================================*/
 
 #include "Timer.h"
+#include <OneButton.h>
 
 Timer t;
 //Timer player1timer;
 //Timer player2timer;
-int player1button = 1;
-int player2button = 1;
+//
+//int roundNum = 1;
+//int player1button = 1;
+//int player1numclick = 0;
+//int player2button = 1;
 
+// PLAYER BUTTONS
+const int  p1PIN = 2;        // pin with switch attached
+const int p2PIN = 19;     // the second pin with switch attached
+OneButton p1button(p1PIN, 0);
+OneButton p2button(p2PIN, 0);
 
 int letter = 0;
 
@@ -54,9 +64,7 @@ int pixels[8][8] = {
   {0, 0, 1, 1, 1, 0, 0, 0} // player1
 };
 
-// PLAYER BUTTONS
-const int  p1left = 2;        // pin with switch attached
-const int p1right = 19;     // the second pin with switch attached
+
 
 void setup() {
   Serial.begin(9600);
@@ -73,89 +81,49 @@ void setup() {
   }
 
   t.every(400, moveBall);
-    t.every(300, releaseButton1);
-    t.every(300, releaseButton2);
-//  player1timer.every(1000, releaseButton(1));
-//  player2timer.every(1000, releaseButton(2));
+  //  t.every(400, releaseButton1);
+  //    t.every(300, releaseButton2);
+  //  t.every(300, newRound);
+  //  player1timer.every(1000, releaseButton(1));
+  //  player2timer.every(1000, releaseButton(2));
 
   // initialize the pins for the buttons/switches
-  pinMode(p1left, INPUT);
-  pinMode(p1right, INPUT);
+  pinMode(p1PIN, INPUT);
+  pinMode(p2PIN, INPUT);
+  p1button.attachDoubleClick(doubleclick1);
+  p1button.attachClick(oneClick1);
+  p2button.attachDoubleClick(doubleclick2);
+  p2button.attachClick(oneClick2);
+}
+
+void doubleclick1() {
+  moveLeft(1);
+}
+
+void oneClick1() {
+  moveRight(1);
+}
+
+
+void doubleclick2() {
+  moveLeft(2);
+}
+
+void oneClick2() {
+  moveRight(2);
 }
 
 String readString;
 int change = 0 ;
 
+int two = 0;
+
 void loop() {
+  // Update the timers
 
-  // Update the timer
+  p1button.tick();
+  p2button.tick();
   t.update();
-//  player1timer.update();
-//  player2timer.update();
-
-  //  if (Serial.available())
-  //  {
-  //    String serialData = Serial.readString();
-  //    serialData.trim();
-  //
-  //    if (serialData[0] == 's') {
-  //      moveRight(1);
-  //    }
-  //    else if (serialData[0] == 'a') {
-  //      moveLeft(1);
-  //    }
-  //    else if (serialData[0] == 'l') {
-  //      moveRight(2);
-  //    }
-  //    else if (serialData[0] == 'k') {
-  //      moveLeft(2);
-  //    }
-  //
-  //  }
-
-
-  if (player1button) {
-    //   read the state of the buttons
-    int left = digitalRead(p1left);
-    int right = digitalRead(p1right);
-
-    if (left) {
-      moveLeft(1);
-      player1button = 0;
-    }
-    if (right) {
-      moveRight(1);
-      player1button = 0;
-    }
-  }
-
-  if (player2button) {
-    
-    //   read the state of the buttons
-//    int left = digitalRead(p2left);
-//    int right = digitalRead(p2right);
-//    Serial.println(left);
-//    Serial.println(right);
-//
-//    if (left) {
-//        Serial.println("Move left");
-//      moveLeft(2);
-//      player2button = 0;
-//    }
-//    if (right) {
-//        Serial.println("Move right");
-//      moveRight(2);
-//      player2button = 0;
-//    }
-  }
-
-
-
-
-  //  if (change) {
-  //    getVirtualBoard();
-  //    change = 0;
-  //  }
 
   // iterate over the rows (anodes):
   for (int thisRow = 0; thisRow < 8; thisRow++) {
@@ -185,16 +153,6 @@ void loop() {
 
 }
 
-void releaseButton1() {
-//  Serial.println("Releasing button") ;
-    player1button = 1;
-}
-
-
-void releaseButton2() {
-//  Serial.println("Releasing button") ;
-    player2button = 1;
-}
 
 int prevRow = ball[0] - 1;
 int player1[8] = {};
@@ -318,10 +276,6 @@ void moveLeft(int player) {
     }
   }
 }
-
-//void getVirtualBoard() {
-//  memcpy(pixels[7], player1, sizeof(player1));
-//}
 
 void printPlayer(int temp[]) {
   String x = "";
