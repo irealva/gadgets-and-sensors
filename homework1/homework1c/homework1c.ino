@@ -17,6 +17,9 @@
 #include <OneButton.h>
 
 Timer t;
+Timer tover;
+
+int gameover = 0;
 //Timer player1timer;
 //Timer player2timer;
 //
@@ -80,12 +83,7 @@ void setup() {
     digitalWrite(col[thisPin], HIGH);
   }
 
-  t.every(400, moveBall);
-  //  t.every(400, releaseButton1);
-  //    t.every(300, releaseButton2);
-  //  t.every(300, newRound);
-  //  player1timer.every(1000, releaseButton(1));
-  //  player2timer.every(1000, releaseButton(2));
+  t.every(1000, moveBall);
 
   // initialize the pins for the buttons/switches
   pinMode(p1PIN, INPUT);
@@ -118,9 +116,25 @@ int change = 0 ;
 
 int two = 0;
 
-void loop() {
-  // Update the timers
 
+int O[8][8] = {
+  {0, 1, 1, 1, 1, 1, 1, 0},
+  {1, 1, 1, 0, 0, 1, 1, 1},
+  {1, 1, 0, 0, 0, 0, 1, 1},
+  {1, 1, 0, 0, 0, 0, 1, 1},
+  {1, 1, 0, 0, 0, 0, 1, 1},
+  {1, 1, 0, 0, 0, 0, 1, 1},
+  {1, 1, 1, 0, 0, 1, 1, 1},
+  {0, 1, 1, 1, 1, 1, 1, 0}
+};
+
+int showOverScreen = 0;
+
+void loop() {
+
+
+
+  // Update the timers
   p1button.tick();
   p2button.tick();
   t.update();
@@ -136,6 +150,10 @@ void loop() {
       int thisPixel;
       thisPixel = pixels[thisRow][thisCol];
 
+      if (showOverScreen) {
+        thisPixel = O[thisRow][thisCol];
+      }
+
       thisPixel = !thisPixel; // EXTRA DELETE
       // when the row is HIGH and the col is LOW,
       // the LED where they meet turns on:
@@ -150,7 +168,43 @@ void loop() {
     digitalWrite(row[thisRow], LOW);
   }
 
+  // If game is over and we haven't showed that yet
+  if (gameover && showOverScreen == 0) {
+    tover.after(4000, gameReset);
+    showOverScreen = 1;
+  }
+  // If we're showing the gameover screen we let the timer for that screen run
+  if (gameover && showOverScreen == 1) {
+    tover.update();
+  }
 
+
+
+
+
+  //
+  //    if (gameover) {
+  ////////    tover.update();
+  //     delay(4000);
+  //    gameReset();
+  ////
+  ////    //Reset all game data
+  //        }
+
+
+}
+
+void gameReset() {
+  Serial.println("Game reset");
+  showOverScreen = 0;
+  gameover = 0;
+  position1 = 2;
+  position2 = 1;
+
+  ball[0] = 4 ;
+  ball[1] = 0;
+  directionX = 1;
+  directionY = 1;
 }
 
 
@@ -159,58 +213,122 @@ int player1[8] = {};
 int player2[8] = {};
 
 void moveBall() {
-  int ballTemp[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+  if (gameover == 0) {
 
-  //Clear previous row
-  memcpy(pixels[prevRow], ballTemp, sizeof(ballTemp));
+    int ballTemp[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
-  int row = ball[0];
-  int col = ball[1];
+    //Clear previous row
+    memcpy(pixels[prevRow], ballTemp, sizeof(ballTemp));
 
-  // ROW DIRECTION
-  if (directionY) { // Going towards player 1
-    row = row + 1;
-    prevRow = row;
-  }
-  else { // Going towards player2
-    row = row - 1;
-    prevRow = row;
-  }
+    int row = ball[0];
+    int col = ball[1];
 
-  // If we reach bottom of 8x8 where player 1 is, turn around
-  if (row == 6) {
-    directionY = 0;
-  }
-  // I fwe reach top of 8x8 where player 2 is, turn around
-  if (row == 1) {
-    directionY = 1;
-  }
+    // ROW DIRECTION
+    if (directionY) { // Going towards player 1
+      row = row + 1;
+      prevRow = row;
+    }
+    else { // Going towards player2
+      row = row - 1;
+      prevRow = row;
+    }
 
-  // COLUMN DIRECTION
-  if (directionX) {
-    col = col + 1;
-    ballTemp[col] = 1;
-  }
-  else {
-    col = col - 1;
-    ballTemp[col] = 1;
-  }
+    // If we reach bottom of 8x8 where player 1 is, turn around
+    if (row == 6) {
+      int game = checkIfGameOver(6, col);
+      if (game) {
+        gameover = 1 ;
+        Serial.println("Game over:"  + (String) row + ", " +  (String)col);
+        return;
+      }
 
-  if (col == 7) {
-    directionX = 0; // Go to the left
-  }
-  if (col == 0) {
-    directionX = 1; // Go to the right
-  }
+      directionY = 0;
+    }
+    // I fwe reach top of 8x8 where player 2 is, turn around
+    if (row == 1) {
+      int game = checkIfGameOver(1, col);
+      if (game) {
+        gameover = 1 ;
+        Serial.println("Game over:"  +  (String)row + ", " +  (String)col);
+        return;
+      }
 
-  memcpy(pixels[row], ballTemp, sizeof(ballTemp));
+      directionY = 1;
+    }
 
-  ball[0] = row;
-  ball[1] = col;
-  //  Serial.println("Row: " + (String) row + " col: " + (String) col + "\n");
+    // COLUMN DIRECTION
+    if (directionX) {
+      col = col + 1;
+      ballTemp[col] = 1;
+    }
+    else {
+      col = col - 1;
+      ballTemp[col] = 1;
+    }
+
+    if (col == 7) {
+      directionX = 0; // Go to the left
+    }
+    if (col == 0) {
+      directionX = 1; // Go to the right
+    }
+
+    memcpy(pixels[row], ballTemp, sizeof(ballTemp));
+
+    ball[0] = row;
+    ball[1] = col;
+    //  Serial.println("Row: " + (String) row + " col: " + (String) col + "\n");
+  }
 }
 
+int checkIfGameOver(int row, int col) {
+  if (row == 6) {
 
+    if (directionX) {
+      col = col + 1;
+    }
+    else {
+      col = col - 1;
+    }
+
+    //        Serial.println("Checking col: " + (String) col);
+    //        Serial.println("Checking position: " + (String) position1 + "\n");
+    //        Serial.println((col < position1));
+    //        Serial.println((col > (position1 + 3)));
+
+    if (col < position1 || col > (position1 + 3)) {
+      //            Serial.println("Return that lost");
+      return 1;
+    }
+    else {
+      //            Serial.println("Return that keep playing");
+      return 0;
+    }
+  }
+
+  if (row == 1) {
+
+    if (directionX) {
+      col = col + 1;
+    }
+    else {
+      col = col - 1;
+    }
+
+    //        Serial.println("Checking col: " + (String) col);
+    //        Serial.println("Checking position: " + (String) position2 + "\n");
+    //        Serial.println((col < position2));
+    //        Serial.println((col > (position2 + 3)));
+
+    if (col < position2 || col > (position2 + 3)) {
+      return 1;
+    }
+    else {
+      return 0;
+    }
+  }
+
+}
 
 
 void moveRight(int player) {
