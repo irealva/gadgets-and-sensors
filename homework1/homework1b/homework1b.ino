@@ -112,15 +112,15 @@ void loop() {
     for (int thisCol = 0; thisCol < 8; thisCol++) {
       // get the state of the current pixel;
 
-    int thisPixel;
-      if(letter) {
+      int thisPixel;
+      if (letter) {
         thisPixel = O[thisRow][thisCol];
       }
       else {
-         thisPixel = K[thisRow][thisCol];
+        thisPixel = K[thisRow][thisCol];
 
       }
-      
+
       thisPixel = !thisPixel; // EXTRA DELETE
       // when the row is HIGH and the col is LOW,
       // the LED where they meet turns on:
@@ -185,7 +185,7 @@ void loop() {
 //  digitalWrite(A4, LOW); //  COL 1 // 18
 
 void flipLetter() {
-//  Serial.println("Flipping letter");
+  //  Serial.println("Flipping letter");
 
   letter = !letter;
 }

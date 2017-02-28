@@ -15,6 +15,12 @@
 #include "Timer.h"
 
 Timer t;
+//Timer player1timer;
+//Timer player2timer;
+int player1button = 1;
+int player2button = 1;
+
+
 int letter = 0;
 
 // 2-dimensional array of row pin numbers:
@@ -48,6 +54,10 @@ int pixels[8][8] = {
   {0, 0, 1, 1, 1, 0, 0, 0} // player1
 };
 
+// PLAYER BUTTONS
+const int  p1left = 2;        // pin with switch attached
+const int p1right = 19;     // the second pin with switch attached
+
 void setup() {
   Serial.begin(9600);
 
@@ -63,6 +73,14 @@ void setup() {
   }
 
   t.every(400, moveBall);
+    t.every(300, releaseButton1);
+    t.every(300, releaseButton2);
+//  player1timer.every(1000, releaseButton(1));
+//  player2timer.every(1000, releaseButton(2));
+
+  // initialize the pins for the buttons/switches
+  pinMode(p1left, INPUT);
+  pinMode(p1right, INPUT);
 }
 
 String readString;
@@ -70,28 +88,69 @@ int change = 0 ;
 
 void loop() {
 
-  if (Serial.available())
-  {
-    String serialData = Serial.readString();
-    serialData.trim();
-
-    if (serialData[0] == 's') {
-      moveRight(1);
-    }
-    else if (serialData[0] == 'a') {
-      moveLeft(1);
-    }
-    else if (serialData[0] == 'l') {
-      moveRight(2);
-    }
-    else if (serialData[0] == 'k') {
-      moveLeft(2);
-    }
-
-  }
-
   // Update the timer
   t.update();
+//  player1timer.update();
+//  player2timer.update();
+
+  //  if (Serial.available())
+  //  {
+  //    String serialData = Serial.readString();
+  //    serialData.trim();
+  //
+  //    if (serialData[0] == 's') {
+  //      moveRight(1);
+  //    }
+  //    else if (serialData[0] == 'a') {
+  //      moveLeft(1);
+  //    }
+  //    else if (serialData[0] == 'l') {
+  //      moveRight(2);
+  //    }
+  //    else if (serialData[0] == 'k') {
+  //      moveLeft(2);
+  //    }
+  //
+  //  }
+
+
+  if (player1button) {
+    //   read the state of the buttons
+    int left = digitalRead(p1left);
+    int right = digitalRead(p1right);
+
+    if (left) {
+      moveLeft(1);
+      player1button = 0;
+    }
+    if (right) {
+      moveRight(1);
+      player1button = 0;
+    }
+  }
+
+  if (player2button) {
+    
+    //   read the state of the buttons
+//    int left = digitalRead(p2left);
+//    int right = digitalRead(p2right);
+//    Serial.println(left);
+//    Serial.println(right);
+//
+//    if (left) {
+//        Serial.println("Move left");
+//      moveLeft(2);
+//      player2button = 0;
+//    }
+//    if (right) {
+//        Serial.println("Move right");
+//      moveRight(2);
+//      player2button = 0;
+//    }
+  }
+
+
+
 
   //  if (change) {
   //    getVirtualBoard();
@@ -126,13 +185,22 @@ void loop() {
 
 }
 
+void releaseButton1() {
+//  Serial.println("Releasing button") ;
+    player1button = 1;
+}
+
+
+void releaseButton2() {
+//  Serial.println("Releasing button") ;
+    player2button = 1;
+}
+
 int prevRow = ball[0] - 1;
 int player1[8] = {};
 int player2[8] = {};
 
 void moveBall() {
-  Serial.println("move ball");
-
   int ballTemp[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
   //Clear previous row
@@ -161,7 +229,7 @@ void moveBall() {
   }
 
   // COLUMN DIRECTION
-   if (directionX) {
+  if (directionX) {
     col = col + 1;
     ballTemp[col] = 1;
   }
@@ -169,19 +237,19 @@ void moveBall() {
     col = col - 1;
     ballTemp[col] = 1;
   }
-  
+
   if (col == 7) {
     directionX = 0; // Go to the left
   }
   if (col == 0) {
     directionX = 1; // Go to the right
   }
- 
+
   memcpy(pixels[row], ballTemp, sizeof(ballTemp));
 
   ball[0] = row;
   ball[1] = col;
-  Serial.println("Row: " + (String) row + " col: " + (String) col + "\n");
+  //  Serial.println("Row: " + (String) row + " col: " + (String) col + "\n");
 }
 
 
