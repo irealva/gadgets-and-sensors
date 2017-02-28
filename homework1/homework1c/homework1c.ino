@@ -2,10 +2,12 @@
    Irene Alvarado
    Gadgets and Sensors
 
-   Homework 1
-   A simple game of Pong using na 8x8 LED matrix and an Arduino nano
+   Project 1
+   A simple game of Pong using na 8x8 LED matrix and an Arduino nano. 
+   A ball bounces between two players. Each player is associated to 1 button.
+   One button click moves a player to the right, double-clicks move a player to the left. 
 
-   Resource used:
+   Resources used:
      Tips on how to wire an 8x8 LED matrix: https://www.arduino.cc/en/Tutorial/RowColumnScanning
      A Timer library: http://playground.arduino.cc/Code/Timer
      A Double Click button library:  https://github.com/mathertel/OneButton
