@@ -3,39 +3,18 @@
    Gadgets and Sensors
 
    Homework 1
-   Build a simple device with your Arduino which flashes four LEDs. Turn the first LED on for
-   2 seconds, then the second for 1 second, the third for a ½ second, and then the fourth for
-   a ¼ second. Then flash the four in some pattern of your choosing. Wait ½ second, and
-   then repeat.
-   // Instructions: https://www.arduino.cc/en/Tutorial/RowColumnScanning
-   // Resources:
-   http://playground.arduino.cc/Code/Timer
-   https://github.com/mathertel/OneButton
+   A simple game of Pong using na 8x8 LED matrix and an Arduino nano
+
+   Resource used:
+     Tips on how to wire an 8x8 LED matrix: https://www.arduino.cc/en/Tutorial/RowColumnScanning
+     A Timer library: http://playground.arduino.cc/Code/Timer
+     A Double Click button library:  https://github.com/mathertel/OneButton
    ========================================================*/
 
 #include "Timer.h"
 #include <OneButton.h>
 
-Timer t;
-Timer tover;
-
-int gameover = 0;
-//Timer player1timer;
-//Timer player2timer;
-//
-//int roundNum = 1;
-//int player1button = 1;
-//int player1numclick = 0;
-//int player2button = 1;
-
-// PLAYER BUTTONS
-const int  p1PIN = 2;        // pin with switch attached
-const int p2PIN = 19;     // the second pin with switch attached
-OneButton p1button(p1PIN, 0);
-OneButton p2button(p2PIN, 0);
-
-int letter = 0;
-
+// HARDWARE SETUP
 // 2-dimensional array of row pin numbers:
 const int row[8] = {
   7, 4, 9, 3, 14, 10, 16, 11
@@ -46,6 +25,19 @@ const int col[8] = {
   18, 17, 13, 8, 12, 6, 5, 15
 };
 
+// GAME SETUP
+
+Timer t;
+Timer tover;
+
+int gameover = 0; // Indicates whether a game is over
+int showOverScreen = 0; // Indicates whether we've shown a game over screen
+
+// PLAYER BUTTONS
+const int  p1PIN = 2;        // pin with switch attached
+const int p2PIN = 19;     // the second pin with switch attached
+OneButton p1button(p1PIN, 0);
+OneButton p2button(p2PIN, 0);
 
 int size_pong = 3;
 int position1 = 2;
@@ -67,10 +59,28 @@ int pixels[8][8] = {
   {0, 0, 1, 1, 1, 0, 0, 0} // player1
 };
 
-
+// Screen to show once game is over
+int O[8][8] = {
+  {0, 1, 1, 1, 1, 1, 1, 0},
+  {1, 1, 1, 0, 0, 1, 1, 1},
+  {1, 1, 0, 0, 0, 0, 1, 1},
+  {1, 1, 0, 0, 0, 0, 1, 1},
+  {1, 1, 0, 0, 0, 0, 1, 1},
+  {1, 1, 0, 0, 0, 0, 1, 1},
+  {1, 1, 1, 0, 0, 1, 1, 1},
+  {0, 1, 1, 1, 1, 1, 1, 0}
+};
 
 void setup() {
   Serial.begin(9600);
+
+  // initialize the pins for the buttons/switches
+  pinMode(p1PIN, INPUT);
+  pinMode(p2PIN, INPUT);
+  p1button.attachDoubleClick(doubleclick1);
+  p1button.attachClick(oneClick1);
+  p2button.attachDoubleClick(doubleclick2);
+  p2button.attachClick(oneClick2);
 
   // initialize the I/O pins as outputs
   // iterate over the pins:
@@ -83,17 +93,10 @@ void setup() {
     digitalWrite(col[thisPin], HIGH);
   }
 
-  t.every(1000, moveBall);
-
-  // initialize the pins for the buttons/switches
-  pinMode(p1PIN, INPUT);
-  pinMode(p2PIN, INPUT);
-  p1button.attachDoubleClick(doubleclick1);
-  p1button.attachClick(oneClick1);
-  p2button.attachDoubleClick(doubleclick2);
-  p2button.attachClick(oneClick2);
+  t.every(1000, moveBall); // Move the ball every second
 }
 
+// Player 1 click methods
 void doubleclick1() {
   moveLeft(1);
 }
@@ -102,7 +105,7 @@ void oneClick1() {
   moveRight(1);
 }
 
-
+// Player 2 click methods
 void doubleclick2() {
   moveLeft(2);
 }
@@ -111,29 +114,7 @@ void oneClick2() {
   moveRight(2);
 }
 
-String readString;
-int change = 0 ;
-
-int two = 0;
-
-
-int O[8][8] = {
-  {0, 1, 1, 1, 1, 1, 1, 0},
-  {1, 1, 1, 0, 0, 1, 1, 1},
-  {1, 1, 0, 0, 0, 0, 1, 1},
-  {1, 1, 0, 0, 0, 0, 1, 1},
-  {1, 1, 0, 0, 0, 0, 1, 1},
-  {1, 1, 0, 0, 0, 0, 1, 1},
-  {1, 1, 1, 0, 0, 1, 1, 1},
-  {0, 1, 1, 1, 1, 1, 1, 0}
-};
-
-int showOverScreen = 0;
-
 void loop() {
-
-
-
   // Update the timers
   p1button.tick();
   p2button.tick();
@@ -168,6 +149,7 @@ void loop() {
     digitalWrite(row[thisRow], LOW);
   }
 
+  // CHECK IF GAME IS OVER
   // If game is over and we haven't showed that yet
   if (gameover && showOverScreen == 0) {
     tover.after(4000, gameReset);
@@ -177,41 +159,33 @@ void loop() {
   if (gameover && showOverScreen == 1) {
     tover.update();
   }
-
-
-
-
-
-  //
-  //    if (gameover) {
-  ////////    tover.update();
-  //     delay(4000);
-  //    gameReset();
-  ////
-  ////    //Reset all game data
-  //        }
-
-
 }
 
+/*
+ * Resets the game logic
+ */
 void gameReset() {
-  Serial.println("Game reset");
+  //  Serial.println("Game reset");
   showOverScreen = 0;
   gameover = 0;
+  // Reset the player positions
   position1 = 2;
   position2 = 1;
 
+  // Reset the ball position and direction
   ball[0] = 4 ;
   ball[1] = 0;
   directionX = 1;
   directionY = 1;
 }
 
-
 int prevRow = ball[0] - 1;
 int player1[8] = {};
 int player2[8] = {};
 
+/*
+ * Moves a ball in the Y direction and X direction. 
+ */
 void moveBall() {
   if (gameover == 0) {
 
@@ -238,18 +212,16 @@ void moveBall() {
       int game = checkIfGameOver(6, col);
       if (game) {
         gameover = 1 ;
-        Serial.println("Game over:"  + (String) row + ", " +  (String)col);
         return;
       }
 
       directionY = 0;
     }
-    // I fwe reach top of 8x8 where player 2 is, turn around
+    // If we reach top of 8x8 where player 2 is, turn around
     if (row == 1) {
       int game = checkIfGameOver(1, col);
       if (game) {
         gameover = 1 ;
-        Serial.println("Game over:"  +  (String)row + ", " +  (String)col);
         return;
       }
 
@@ -277,13 +249,15 @@ void moveBall() {
 
     ball[0] = row;
     ball[1] = col;
-    //  Serial.println("Row: " + (String) row + " col: " + (String) col + "\n");
   }
 }
 
+/*
+ * Checks if the ball has not bounced off a player given the player's position
+ */
 int checkIfGameOver(int row, int col) {
+  // Check if player 1 lost
   if (row == 6) {
-
     if (directionX) {
       col = col + 1;
     }
@@ -291,34 +265,22 @@ int checkIfGameOver(int row, int col) {
       col = col - 1;
     }
 
-    //        Serial.println("Checking col: " + (String) col);
-    //        Serial.println("Checking position: " + (String) position1 + "\n");
-    //        Serial.println((col < position1));
-    //        Serial.println((col > (position1 + 3)));
-
     if (col < position1 || col > (position1 + 3)) {
-      //            Serial.println("Return that lost");
       return 1;
     }
     else {
-      //            Serial.println("Return that keep playing");
       return 0;
     }
   }
 
+  // Check if player 2 lost
   if (row == 1) {
-
     if (directionX) {
       col = col + 1;
     }
     else {
       col = col - 1;
     }
-
-    //        Serial.println("Checking col: " + (String) col);
-    //        Serial.println("Checking position: " + (String) position2 + "\n");
-    //        Serial.println((col < position2));
-    //        Serial.println((col > (position2 + 3)));
 
     if (col < position2 || col > (position2 + 3)) {
       return 1;
@@ -330,7 +292,9 @@ int checkIfGameOver(int row, int col) {
 
 }
 
-
+/*
+ * Moves a player one step to the right
+ */
 void moveRight(int player) {
   if (player == 1) {
     if (position1 != 5) {
@@ -362,7 +326,9 @@ void moveRight(int player) {
   }
 }
 
-
+/*
+ * Moves a player one step to the left
+ */
 void moveLeft(int player) {
   if (player == 1) {
     if (position1 != 0) {
@@ -393,14 +359,4 @@ void moveLeft(int player) {
       memcpy(pixels[0], playerTemp, sizeof(playerTemp));
     }
   }
-}
-
-void printPlayer(int temp[]) {
-  String x = "";
-
-  for (int i = 0 ; i < 8 ; i++) {
-    x = x + temp[i] + ", " ;
-  }
-
-  Serial.println(x);
 }
