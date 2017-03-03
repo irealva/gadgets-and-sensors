@@ -1,14 +1,14 @@
-///*========================================================
-//   Irene Alvarado
-//   Gadgets and Sensors
-//
-//   Project 3:
-//   Build a simple device which lights four LEDs one after the other and controls the speed at
-//  which the sequence displays with a potentiometer. When the potentiometer is turned fully
-//  counter clockwise the LED sequence should proceed slowly. When the potentiometer is
-//  turned in the clockwise direction it should proceed faster and faster.
-//  ========================================================*/
-//
+/*========================================================
+   Irene Alvarado
+   Gadgets and Sensors
+
+   Project 3:
+   Build a simple device which lights four LEDs one after the other and controls the speed at
+  which the sequence displays with a potentiometer. When the potentiometer is turned fully
+  counter clockwise the LED sequence should proceed slowly. When the potentiometer is
+  turned in the clockwise direction it should proceed faster and faster.
+  ========================================================*/
+
 ///*------- Hardware configuration -------*/
 const int  potenPin = 14;        //  Analog pin for potentiometer
 

@@ -1,18 +1,18 @@
-///*========================================================
-//   Irene Alvarado
-//   Gadgets and Sensors
-//
-//   Project 4:
-//Build a simple device which uses four or more LEDs as a simple magnitude display
-//indicating either light level (sensed by a photocell) or temperature (sensed by a
-//thermistor). That is if the light (or temperature) is “low” no LEDs will be lit, and as the light
-//(or temperature) increases more LEDs should be turned on. For the light sensor version,
-//you should tune the response of your device to demo well in a typical classroom by
-//shadowing/covering it with your hand. For the temperature sensor version, you should
-//tune the response of your device to demo well in response to typical ambient room
-//temperature vs. human skin temperature.
-//  ========================================================*/
-//
+/*========================================================
+   Irene Alvarado
+   Gadgets and Sensors
+
+   Project 4:
+    Build a simple device which uses four or more LEDs as a simple magnitude display
+    indicating either light level (sensed by a photocell) or temperature (sensed by a
+    thermistor). That is if the light (or temperature) is “low” no LEDs will be lit, and as the light
+    (or temperature) increases more LEDs should be turned on. For the light sensor version,
+    you should tune the response of your device to demo well in a typical classroom by
+    shadowing/covering it with your hand. For the temperature sensor version, you should
+    tune the response of your device to demo well in response to typical ambient room
+    temperature vs. human skin temperature.
+  ========================================================*/
+
 ///*------- Hardware configuration -------*/
 const int  sensorPin = 14;        //  Analog pin for potentiometer
 
@@ -75,7 +75,6 @@ void loop() {
     digitalWrite(fourthPin, LOW);
   }
   else if (50 <= LEDbrightness && LEDbrightness < 100) {
-    Serial.println("case 1");
     digitalWrite(firstPin, HIGH);
     digitalWrite(secondPin, LOW);
     digitalWrite(thirdPin, LOW);

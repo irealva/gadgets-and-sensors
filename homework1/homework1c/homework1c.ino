@@ -13,8 +13,8 @@
      A Double Click button library:  https://github.com/mathertel/OneButton
    ========================================================*/
 
-#include "Timer.h"
-#include <OneButton.h>
+#include "Timer.h" // External library
+#include <OneButton.h> // External library
 
 // HARDWARE SETUP
 // 2-dimensional array of row pin numbers:
